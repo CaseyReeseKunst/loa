@@ -1,0 +1,71 @@
+loa knows the following commands:
+
+
+help         - shows this list of commands
+move from to - use this to make your move (e.g. move b1 b3)
+quit	     - quit the game
+play	     - let loa make its move
+level [2-9]  - set the search depth to 2-6 (half)moves
+show	     - shows the current board
+showwhite    - prints a list with the positions of the white stones
+showblack    - prints a list with the positions of the black stones
+cc	     - exchange the colors between you and loa
+from field   - 'from c1', shows all legal moves you can make with the
+               stone on c1
+takeback     - undo the last (half) move
+who	     - prints the color of the player that has to make the next move
+progess 0|1  - type 'progress 1' if you want to see the progress of loa's
+               calculations
+hint	     - show what loa assumes to be the best possible move for you
+clearboard   - remove all stones from the board
+setstone field color - 'setstone g4 black', places a black stone on field g4
+               choose 'empty' as color to delete a stone.
+layout 0|1   - 0 means the standard layout, 1 means 'scamled'
+
+
+Beside these commands, there are some other commands which are used to
+modify the behaviour of loa.
+To understand the effect of those commands it might be usefull to know a little
+bit more about how loa evaluates positions. 
+
+To determine the value of a given position, loa calculates a simple sum like
+
+weight1*value1 + weight2*value2 + ...
+
+The 'values' are attributes of the positions like the number of groups, the
+distances between those groups and so on. The 'weights' can be set by commands.
+
+As an example, let's look at one of those attributes, the 'connections'.
+
+Imagine a connected group of four stones. Beside some other possibilities,
+these stones can form a straight line or a compact block (square). 
+The straight line has the drawback, that it's possible to break up this 
+group by capturing one of the stones in the middle of the line. 
+If the stones form a compact block, it's impossible to break up this group.
+So the latter will be preferred.
+To find a value for the compactness of a group, 'loa' simply counts the number
+of direct connections between the stones of a group. For the four stones on 
+a line, this calculations gives a value of 3 while the compact block has the 
+value 6.
+Here is a little 'picture': The lines between the numbers (stones) are
+the connections.
+
+1-2-3-4
+
+1-2
+|X|
+3-4
+
+Setting 'connections' to a high value e.g. 9, forces loa to build compact 
+groups.
+
+
+setgw [0-9]	 - the distance between the different groups [2]
+groupcount [0-9] - the number of different groups [9]
+movelist 0|1	 - the number of possible move. Can only be used 
+                   up to level 4 [0]
+preview 0|1	 - difficult and not very useful - ignore it :-( [0]
+connections [0-9]- explained above [2]
+central [0-9]	 - stones on central postitions [5]
+sumdist [0-9]	 - the distances between all the stones of one color [6]
+stonecount [0-9] - the number of stones of one color [5]

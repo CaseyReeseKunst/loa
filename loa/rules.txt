@@ -1,0 +1,84 @@
+The rules for Lines Of Action (LOA) - in Questions and Answers.
+
+Q: What do I need for playing LOA ?
+A: Loa is played on an 8x8 checkerboard. Each of the two players has
+   12 identical stones. One player plays white, the other one black.
+
+Q: What's the initial position ?
+A: Here is the initial setup of the standard version of the
+game. 
+
+ 8  - B B B B B B -
+ 7  W - - - - - - W
+ 6  W - - - - - - W
+ 5  W - - - - - - W
+ 4  W - - - - - - W
+ 3  W - - - - - - W
+ 2  W - - - - - - W
+ 1  - B B B B B B -
+    a b c d e f g h
+
+Q: What's the object of the game ?
+A: Bring all your stones on the board into one connected
+group. "Connected" means both, diagonal and orthogonal.
+
+Q: Who begins ?
+A: black
+
+Q: And then, in turn, each player moves one stone ?
+A: Yes !
+
+Q: In which directions may I move ?
+A: You may move in any direction, but it must be a straight line (queen
+line).
+
+Q: How far may I move ?
+A: You must move exactly as many squares as there are stones on the
+line of movement. All stones count, yours and your opponents. E.g. If
+you want to move to the right, you have to count all stones on that horizontal
+line. Then you know how far you must move.
+
+Q: Could you show me an example ?
+A: Yes, but later :-)
+
+Q: May I jump over my own stones ?
+A: Yes!
+
+Q: May I jump over my opponents stones ?
+A: No, but if you land on a stone of your opponent, his stone is
+captured and removed from the board for the rest of the game.
+
+Q: May I land on one of my own stones ?
+A: No, you can only land on free positions or on an opponents stone
+(capturing it).
+
+Q: What about the example ?
+A: Ok, here it is:
+
+8  - - - - - - - -
+7  - - B W - - - W
+6  - - - - - - - -
+5  - - - - - - - -
+4  - - - - - - - -
+3  - - W - - - - -
+2  - - B B - - - -
+1  - - B - - - - -
+   a b c d e f g h
+
+Look at the stone on c7. You can move this stone one square on any
+diagonal line because there are no other stones on these lines. 
+You can't move this stone to the left, because on the horizontal line are
+three stones, so you would jump over the border.
+You can't move to the right because you can't jump over the white
+stones.
+You can move four squares down and capture the white stone. That's
+obviously the best move because all of your stones are now connected.
+
+Q: What happens if my move leads to winning positions for both, me and
+my opponent (because I captured his last stone which is not connected
+to the rest) ?
+A: You made this move, you win !
+
+Q: If I have only one stone left, is it a connected group and
+therefore a winning position ?
+A: Yes !

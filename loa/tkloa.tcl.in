@@ -1,0 +1,456 @@
+# original: !/usr/bin/wish
+
+# tkloa - graphical front end for loa
+# Copyright (C) 2002 Christian Weninger
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# To contact the authors send email to
+# cweninger@gillion.de                  (Christian Weninger)
+
+
+global factor space
+set factor 2.0
+set space 0
+#set space [expr 0.5 * $factor]
+
+global drag_from drag_to c_color h_color field_color black_field_color white_field_color
+global is_busy level
+global last_source last_dest mark_exists
+global read_done
+
+# change these values to customize !
+
+set black_field_color brown
+set white_field_color yellow
+set field_color $black_field_color
+set mark_field_color blue
+set level 3
+
+
+# but don't change these :-)
+
+set c_color white
+set h_color black
+set is_busy 0
+set mark_exists 0
+set game_over 0
+
+
+# definition of the menus
+
+frame .mbar -relief raised -bd 2
+pack .mbar -side top -fill x
+
+menubutton .mbar.file -text File -underline 0 -menu .mbar.file.menu
+menubutton .mbar.levels -text Levels -underline 0 -menu .mbar.levels.menu
+pack .mbar.file .mbar.levels -side left
+
+menu .mbar.file.menu -tearoff 0
+.mbar.file.menu add command -label Quit -underline 0 -command quit
+.mbar.file.menu add command -label "Swap colors" -underline 0 -command swap_colors
+.mbar.file.menu add command -label "New Game" -underline 0 -command restart
+
+menu .mbar.levels.menu -tearoff 0
+
+foreach l {1 2 3 4 5 6 7 8 9} {
+    .mbar.levels.menu add radiobutton -label $l -variable level -value $l -command [list set_level $l]
+}
+
+tk_menuBar .mbar .mbar.file .mbar.levels
+
+# define the canvas for the board
+
+canvas .c -width [expr 8 * $factor]c -height [expr 8* $factor]c
+#canvas .d -width [expr 9 * $factor]c -height [expr 0.5* $factor]c
+pack .c
+#pack .c .d
+
+# Here we start with the program
+#
+# we have the following important lists:
+#
+# field_id :  fiel_id(b1) is the id (number) of the square  with the name "b1"
+# fieldname:  fieldname(id) is the name of the square with the number "id"
+# fieldx   :  fieldx(b1) is the x-coordinate of the square "b1"
+# field_idx:  field_idx(id) is the x-coordinate of the square with the number "id"
+# fieldy, field_idy: same as above but for y-coordinates
+
+# stone_id : stone_id(b1) is the id of the stone on field b1
+# stonepos: stonepos(id) is field (e.g. b1) of the stone
+# stonecolor: stonecolor(b1) is the color of the stone on field b1
+
+
+
+# show that we are busy
+
+proc busy {} {
+    global is_busy
+    set is_busy 1
+    .c configure -cursor watch
+    .mbar.levels configure -state disabled
+    update
+}
+
+proc unbusy {} {
+    global is_busy
+    set is_busy 0
+    .c configure -cursor left_ptr
+    .mbar.levels configure -state normal
+    update
+}
+
+
+# mark the last move e.g. change the framecolor of the fields
+
+proc mark_move { source_field dest_field } {
+    global mark_move_color field_id mark_exists last_source last_dest
+    set source_id $field_id($source_field)
+    set dest_id $field_id($dest_field)
+    .c itemconfigure $source_id -width 2 -outline blue
+    .c itemconfigure $dest_id -width 2 -outline blue
+    set last_source $source_field
+    set last_dest $dest_field
+    set mark_exists 1
+}
+
+
+proc unmark_last_move {} {
+    global last_source last_dest mark_exists field_id
+    set source_id $field_id($last_source)
+    set dest_id $field_id($last_dest)
+    .c itemconfigure $source_id -width 1 -outline black
+    .c itemconfigure $dest_id -width 1 -outline black
+    set mark_exists 0
+}
+
+
+
+# swap the colors
+
+proc swap_colors {} {
+    global c_color h_color mark_exists
+    set tmp_color $c_color
+    set c_color $h_color
+    set h_color $tmp_color
+    sendCommand "cc"
+    if {$mark_exists} {
+	unmark_last_move
+    }
+    busy
+    loa_move
+    unbusy
+}
+
+
+# set a new level
+
+proc set_level { level } {
+    sendCommand "level $level"
+}
+
+    
+proc quit {} {
+    global gamePipe
+    puts $gamePipe "quit"
+    flush $gamePipe
+    catch {close $gamePipe}
+    exit 0
+}
+
+
+proc restart {} {
+    global gamePipe game_over level dragging mark_exists c_color h_color
+    .c delete stone
+    puts $gamePipe "quit"
+    flush $gamePipe
+    catch {close $gamePipe}
+    set game_over 0
+    set c_color white
+    set h_color black
+    setupBoard
+    set_level $level
+    set dragging 0
+        if {$mark_exists} {
+	unmark_last_move
+    }
+
+    .c bind stone <ButtonPress-1> {
+    enterDrag
+    }
+
+}
+
+# swap_field_colors is used to draw the checkers board
+
+proc swap_field_colors {} {
+    global field_color black_field_color white_field_color
+    if {$field_color == $black_field_color} {
+	set field_color $white_field_color
+    } else {
+	set field_color $black_field_color
+    }
+}
+
+
+proc myGets {pipe dummyReply} {
+    global read_done gamePipe reply
+    set nret [gets $gamePipe reply]
+    set read_done 1
+}
+
+# send the 'play' command to loa, check the reply and make loa's move
+
+proc loa_move {} {
+    global gamePipe c_color read_done reply
+    set reply ""
+    puts $gamePipe "play"
+    flush $gamePipe
+#    set nRet [gets $gamePipe reply]
+    fileevent $gamePipe readable [list myGets $gamePipe reply]
+    tkwait variable read_done
+    fileevent $gamePipe readable
+    if {[string match *error* $reply]} {
+	tk_dialog .d { Errormessage from loa } $reply {} -1 { Ok }
+    } else {
+	movestone [lindex $reply 1] [lindex $reply 2] $c_color
+	mark_move [lindex $reply 1] [lindex $reply 2]
+	gets $gamePipe reply;    # read 'value '
+	if {[string match *-5000* $reply]} {
+	    tk_dialog .d { Game over ! } "you win" {} -1 { Ok }
+	} else {
+	    if {[string match *5000* $reply]} {
+		tk_dialog .d { Game over ! } "I win" {} -1 { Ok }
+	    }
+	}
+    }
+}
+
+# send the 'move' command to loa. return 1 if the move was valid, 0 otherwise.
+
+proc human_move { from to } {
+    global gamePipe
+    global game_over
+    set command move
+    append command " " $from " " $to
+    puts $gamePipe $command
+    flush $gamePipe
+    set nRet [gets $gamePipe reply]
+    if {[string match *alue* $reply]} {
+	if {[string match *-5000* $reply]} {
+	    tk_dialog .d { Game over ! } "you win" {} -1 { Ok }
+	    set game_over 1
+	    return 1
+	} else {
+	    if {[string match *5000* $reply]} {
+		tk_dialog .d { Game over ! } "I win" {} -1 { Ok }
+		set game_over 1
+	    }
+	}	
+	gets $gamePipe reply;           # read 'ok  '
+	return 1
+    } else {
+	append reply $from $to
+	tk_dialog .d { Errormessage from loa } $reply {} -1 { Ok }
+	return 0
+    }
+}
+
+
+# read the intro from loa
+
+proc read_intro {} {
+    global gamePipe
+    set nret [gets $gamePipe answer]
+    while {[string match *fun* $answer] != 1} {
+	set nret [gets $gamePipe answer]
+    }
+}
+
+
+# draw a new board
+
+proc newboard {} {
+    global fieldx fieldy fieldname field_id field_idx field_idy factor field_color space
+    set y 0
+    foreach i {8 7 6 5 4 3 2 1} {
+	set x 0
+	foreach j {a b c d e f g h} {
+	    set f [.c create rectangle [expr $space + ${x} * $factor]c \
+		    [expr $space + ${y} * $factor]c \
+		    [expr $space + ($x+1) * $factor]c \
+		    [expr $space + ($y+1) * $factor]c -outline black -fill $field_color -tags field]
+	    set field_idx($f) [expr $space + $x * $factor]
+	    set field_idy($f) [expr $space + $y * $factor]
+	    set dummy "$j$i"
+	    set fieldname($f) $dummy
+	    set field_id($dummy) $f
+	    set fieldx($dummy) [expr $space + $x * $factor]
+	    set fieldy($dummy) [expr $space + $y * $factor]
+	    incr x
+	    swap_field_colors
+	}
+	incr y
+	swap_field_colors
+    }
+}
+
+
+# set a stone with color "color" on position "pos"
+# pos is something like a2 ...
+
+proc setstone {pos color} {
+    global fieldx fieldy stone_id factor stonepos stonecolor
+    set p [.c create oval [expr $fieldx($pos)+(0.1 * $factor) ]c \
+	    [expr $fieldy($pos)+(0.1 * $factor)]c \
+	    [expr $fieldx($pos)+(0.9 * $factor)]c \
+	    [expr $fieldy($pos)+(0.9 * $factor)]c -outline black \
+	    -fill $color -tag stone]
+    set stone_id($pos) $p
+    set stonepos($p) $pos
+    set stonecolor($pos) $color
+}
+
+
+# open a pipe to loa, read the lists with the positions and
+# set the stones on the board.
+
+proc setupBoard {} {
+    global whitePositions blackPositions gamePipe dragging tcl_platform
+    if {$tcl_platform(platform) == "unix"} {
+        set gamePipe [open |loa r+]
+    } else {
+        set gamePipe [open |loa.exe r+]
+    }
+    read_intro
+    puts $gamePipe "showwhite"
+    flush $gamePipe
+    set nRet [gets $gamePipe whitePositions]
+    puts $gamePipe "showblack"
+    flush $gamePipe
+    set nRet [gets $gamePipe blackPositions]
+    foreach i $whitePositions {
+	setstone $i "white"
+    }
+    foreach j $blackPositions {
+	setstone $j "black"
+    }
+    set dragging 0
+}
+
+
+proc tmpMove {} {
+    global drag_from drag_to currStone fieldx fieldy
+    set dx [expr $fieldx($drag_to) - $fieldx($drag_from)]c
+    set dy [expr $fieldy($drag_to) - $fieldy($drag_from)]c
+    .c move $currStone $dx $dy
+    .c raise $currStone
+    set drag_from $drag_to
+}
+    
+
+# usage: movestone b1 b3 black
+
+proc movestone {fromPos toPos color} {
+    global px py stone_id stonecolor
+    .c delete $stone_id($fromPos)
+    unset stone_id($fromPos)
+    unset stonecolor($fromPos)
+    if [info exists stone_id($toPos)] {
+	.c delete $stone_id($toPos)
+    }
+    setstone $toPos $color
+}
+
+
+# sendCommand : send a command to loa and check for "ok" or "error"
+
+proc sendCommand {commString} {
+    global gamePipe
+    puts $gamePipe $commString
+    flush $gamePipe
+    set nRet [gets $gamePipe answer]
+    if {[string match *error* $answer] == 1} {
+	return false
+    } else {
+	return true
+    }
+}
+
+proc enterDrag {} {
+    global currStone dragging stonepos drag_from stonecolor drag_to mark_exists is_busy
+    global game_over
+    if {$is_busy || $game_over} {
+	return
+    }
+    if {$dragging > 0} {
+	.c itemconfigure current -outline black
+	set dragging 0
+	if [human_move $stonepos($currStone) $drag_from] {
+	    movestone $stonepos($currStone) $drag_from $stonecolor($stonepos($currStone))
+	    busy
+	    if {!$game_over} {
+	    	loa_move
+	    }
+	    unbusy
+	} else {
+	    set drag_to $stonepos($currStone)
+	    tmpMove
+	}
+    } else {
+	if {$mark_exists} {
+	    unmark_last_move
+	}
+	.c itemconfigure current -outline red
+	set currStone [.c find withtag current]
+	set drag_from $stonepos($currStone)
+	set dragging 1
+    }
+}
+#.c bind field <Any-Enter> {
+#    .c itemconfigure current -fill blue
+#}
+
+#.c bind field <Any-Leave> {
+#    .c itemconfigure current -fill green
+#}
+
+
+
+newboard
+setupBoard
+set dragging 0
+.c bind stone <ButtonPress-1> {
+    enterDrag
+}
+
+.c bind field <Any-Enter> {
+    if {$dragging > 0} {
+	set drag_to $fieldname([.c find withtag current])
+	tmpMove
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
