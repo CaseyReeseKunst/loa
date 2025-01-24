@@ -1,0 +1,73 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(loa/gamebase.c)
+AM_INIT_AUTOMAKE(loa,1.0)
+
+AC_PATH_PROGS(PERL, perl)
+AC_PATH_PROGS(WISH, wish)
+
+SUBDIRS = "loa xloa"
+
+dnl SUBDIRS = "loa"
+dnl AC_SUBST(SUBDIRS)
+
+dnl Needed for SUBDIRS
+AC_PROG_MAKE_SET
+
+
+
+
+dnl Checks for programs.
+AC_PROG_INSTALL
+AC_PROG_CC
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(limits.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+dnl Checks for library functions.
+
+AC_OUTPUT(Makefile loa/Makefile xloa/Makefile)
+
+dnl AC_OUTPUT(Makefile loa/Makefile)
+
+dnl My checks
+if test -n "$PERL"; then
+	if ( ! `$PERL -e 'use Tk' 2> /dev/null` ) then
+		echo
+		echo "  Oops, perl-Tk module not found - so you can't use xloa..."
+		echo "  I recommend to install perl-Tk. You probably will find it "
+		echo "  on your Linux distribution disks or at"
+		echo
+		echo "  http://www.perl.com/CPAN/modules/by-category/08_User_Interfaces/Tk"
+		echo
+		if test -n "$WISH"; then
+			echo
+			echo "   If you can't (or don't want to) install perl-Tk"
+			echo "   you can use tkloa instead."
+			echo
+		else
+			echo
+			echo "   Even TCL/Tk is not installed, but you can use loa 'pure'."
+			echo
+		fi
+	else
+		echo
+		echo "   Perl and Tk found - everything ok !"
+		echo
+	fi
+else
+	echo
+	echo "   Warning: can't find Perl - so you can't use xloa..."
+	echo
+fi
+echo
+echo "   Please continue with 'make' and 'make install'. "
+echo "   After that you will find some documentation in "
+echo
+echo "   $prefix/lib/xloa and $prefix/lib/loa"
+echo
