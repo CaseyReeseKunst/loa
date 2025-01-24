@@ -1,0 +1,43 @@
+This is version 1.0 of LOA (Lines Of Action), a board game.
+Copyright (C) 2000 Christian Weninger
+
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+To contact the author send emails to
+cweninger@gillion.de                  (Christian Weninger)
+
+INSTALLATION:
+
+In most cases 'loa' is distributed together with it's graphical 
+interface 'xloa'. You should use the install script of the complete
+package even if you want to install 'loa' without 'xloa'.
+If you, for any reason, want to install loa without any
+graphical interface, you should run the 'configure' script
+of the package and then run 'make' in the directory with
+the loa-sources.
+
+After 'make', copy 'loa' to an appropriate place
+on your system (e.g. /usr/local/bin or, if you are not root, your home
+directory).
+
+If, for any reason, 'make' fails to compile 'loa', you probably have to
+edit the Makefile.
+
+The rules of loa can be found in the file 'rules.txt' and a list of
+commands known by 'loa' are in 'commands.txt'.
+
+BUGS:
+
+Loa can't handle situations, where one of the player can't move.
