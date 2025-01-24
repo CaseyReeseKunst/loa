@@ -1,0 +1,265 @@
+# -*- perl -*-
+#
+# xloa - graphic front end for loa, a strategy game
+# Copyright (C) 2000 Christian Weninger and Jens Thoms Törring
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# To contact the authors send email to
+# cweninger@gillion.de                  (Christian Weninger)
+# Jens.Toerring@physik.fu-berlin.de           (Jens Thoms Törring)
+
+
+##############################################################################
+
+package main;
+
+unshift( @INC, "DUMMY1" );          # where to find the modules - see Makefile
+
+use strict;
+use FileHandle;
+use IPC::Open2;                     # we need a two-way pipe to loa
+use Init;
+use Board;
+use Menus;
+use MList;
+use Save;
+use Packer;
+
+
+########## Global variables ##########
+
+my %opt = (
+		loa           => undef,      # pid of loa
+		parent        => undef,      # the main window
+		player        => "black",    # color of human player
+		is_scrambled  => 0,
+		block         => 0,          # set while loa is busy
+		over          => 0,          # set after end of game
+		edit          => 0,          # set in edit mode
+    	debug_level   => 0,
+		prefix        => "DUMMY1",   # set via the Makefile
+		pin           => undef,      # in pipe descriptor
+		mess_block    => 0,
+	    dont_break    => 0,
+);
+
+# 'block' has always to be set when a more-than-one-line message from loa is
+# expected to avoid another callback routine from starting to talk to loa and
+# getting replies it shouldn't get (or not the one it expects...)
+
+my ( $RD, $WR ) = FileHandle::pipe;
+my $RD2 = new FileHandle;
+
+
+########## Routines ##########
+
+#---------------------
+
+sub listener {
+
+    my $need_signal = 0;
+
+    $SIG{ USR1 } = sub { $need_signal = 1 };      # switch on signaling
+    $SIG{ USR2 } = sub { $need_signal = 0 };      # switch off signaling
+    $SIG{ ALRM } = sub { };                       # just wake up, don't die
+
+	$WR->close;
+	$RD2->close;
+    $| = 1;                                       # set autoflush for STDOUT
+
+	while ( <$RD> ) {
+		print;
+		kill 'USR1', getppid if $need_signal;
+		select undef, undef, undef, undef if $need_signal;
+    }
+
+	$RD->close;
+	exit;
+}
+
+#---------------------
+# Sends a message to loa and returns the reply
+
+sub talk {
+
+	&send( @_ );
+	return &receive( );
+}
+
+#---------------------
+# Sends data to loa
+
+sub send {
+
+    my ( $mess, $do_signaling ) = @_;
+
+    kill 'USR1', $opt{ listener } if defined $do_signaling;
+
+	# Send the message to loa
+
+	print STDERR "Sending:  $mess\n" if $opt{ debug_level } & 7;
+	print $WR "$mess\n";
+}
+
+#---------------------
+# Returns one line from loa
+
+sub receive {
+
+	# Get next reply from loa and pass it on
+
+	my $reply = <$RD2>;
+	print STDERR "Received: $reply" if $reply and $opt{ debug_level } & 6;
+	return $reply;
+}
+
+#---------------------
+# Starts loa with a two-way pipe - loa is written to allow this
+# (i.e it always flushes its output buffers, so xloa won't hang)
+
+sub start_loa {
+
+	# Set some important global variables
+
+	set( 'player' => 'black',
+		 'block'  => 0,
+		 'over'   => 0,
+		 'edit'   => 0 );
+
+	# Start loa with a two-way pipe - 'DUMMY2' is set via the Makefile
+
+	$opt{ loa } = open2( $RD, $WR, "DUMMY2" ) or
+		die "Sorry, can't play - program `loa' not found";
+
+	# Now spawn the listener process
+
+	if ( $opt{ listener } = $RD2->open( "-|" ) ) {        # parent process
+		$RD->close;
+		set( 'pin', $RD2 );
+		$WR->autoflush( 1 );
+		1 while ( $_ = &receive( ) and ! /have fun/ );
+		talk( "progress 1" );
+		return;
+	} elsif ( defined $opt{ listener } ) {                # child process
+		&listener;
+	}
+
+	# If forking the listener process failed...
+
+	kill 'TERM', $opt{ loa };
+	die "Sorry, can't play loa - not enough system resources";
+}
+
+#---------------------
+# Kills loa - if loa is busy it won't react to a message, so it got
+# to be stopped the hard way...
+
+sub stop_loa {
+
+	&Edit::edit if $opt{ edit };           # switch off edit mode
+
+	if ( $opt{ block } ) {
+		kill 'TERM', $opt{ loa };          # loa won't listen...
+	} else {
+		&main::talk( "quit" );             # kill it the friendly way
+	}
+
+	waitpid $opt{ loa }, 0;
+	waitpid $opt{ listener }, 0;
+
+	$WR->close;                             # close all pipes
+	$RD2->close;
+	set( 'pin', undef );
+}
+
+#---------------------
+# Makes loa and xloa quit on a Destroy event for the main window
+
+sub suicide {
+	my $who = shift;
+	return unless $who and $who eq get( 'parent' );
+	&Menus::quit;
+}
+
+#---------------------
+# Only now we can safely include Tk !
+
+use Tk;
+
+#---------------------
+# Sets the main windows title
+
+sub title {
+
+	$opt{ parent }->title( "Xloa: " . shift );
+}
+
+#---------------------
+# Sets one or more of the global variables
+
+sub set {
+
+	while ( @_ >= 2 ) {
+		my ( $key, $val ) = ( shift, shift );
+		$opt{ $key } = $val;
+	}
+}
+
+#---------------------
+# Returns the value of one of the main packages global variables
+
+sub get {
+
+	my $key = shift;
+	return $opt{ $key };
+}
+
+
+##########  Main program starts here (finally...)  ##########
+
+# Set signal handlers
+
+$SIG{ TERM } = sub { kill 'TERM', $opt{ loa }; exit };
+$SIG{ USR1 } = sub { $opt{ parent }->afterIdle( \&Stone::play_on ); };
+
+# Start loa and initialize lots of variables after reading in the
+# configuration files
+
+&start_loa;
+Init::init;
+
+# Create the main window and set some bindings - we need to make the packer
+# do a few things it's usually not prepared to do, therefore we have to get
+# all Configure events for the main window
+
+$opt{ parent } = MainWindow->new( '-title' => 'Xloa: blacks turn'  );
+$opt{ parent }->bind( 'all', '<Configure>' => \&Packer::configure );
+
+# Create the menus, the move list and the game board
+
+&Menus::init;
+&MList::make;
+Board->new;
+
+# If there's a command line argument assume it's a file with a saved game
+
+&Save::load( $ARGV[ 0 ] ) if defined $ARGV[ 0 ];
+
+# Now let's start playing...
+
+MainLoop;
+
+1;

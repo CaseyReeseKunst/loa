@@ -1,0 +1,144 @@
+# 1 20 70 36 200 10  (tabwidth width height padx pady)
+
+	Using xloa
+	=========
+
+	Basics
+
+	xloa is not more than a graphical front end to another program, called
+	loa. So, if you don't like xloa you always can use loa directly instead.
+	See the documentation for loa to learn how to do it (or how to write
+	your own version of xloa :-)
+
+	Using xloa is quite simple: To move one of your stones simply click
+	onto the stone with the left mouse button and drag it to the field
+	you want to move it to. After you release the mouse button it will
+	stay on this field if the move you've done is legal. And when you
+	win you will be told so.
+
+	If you're still a bit uncertain about the rules of LOA or don't like to
+	do all the stone-counting by yourself you can move the mouse onto
+	one of your stones and press the right mouse button. xloa will show
+	all the legal moves for this stone. Here is an example:
+
+# examp3.gif 50 5
+
+
+	After a click with the right mouse button onto your stone at d5 the
+	blue arrows show all the fields to which you may move this stone. If
+	you release the mouse button, the blue arrows will vanish.
+
+	You can even ask the computer what he thinks is a reasonable move
+	for your side. To get such a hint just click somewhere onto the board
+	with the middle mouse button. As long as you keep the button pressed
+	a red arrow will be shown indicating the move as in this example:
+
+# examp4.gif 50 5
+
+
+	While in this example the hint is a really good move because it will
+	win the game (but there is also a second, equally good one - do you
+	see it?) you shouldn't take the computers hints as the Gospel: just
+	following the hints will probably never make you a winner - loa is
+	always thinking a bit farther ahead then it's going to tell you ;-)
+
+	You also shouldn't be too astonished if sometimes you won't get a
+	hint. Hints are a by-product of loas calculations for its own strategy,
+	so at the very start of a game or after you have taken back a move it
+	have to restart doing all its calculations and, unfortunately, can't
+	give you any hints.
+
+	After you have won the game you can start a new one by going to the
+	'Game' menu and select the 'New Game' entry. Actually, beside the
+	standard layout there's also a scrambled one and you can choose
+	which type of game you now want to play. And if you hear your boss
+	coming you always can select the 'Quit' entry and xloa will vanish,
+	leaving no trace behind ;-)
+
+	As you will find in the 'Game' menu you can also switch stones with
+	loa if you prefer the computer to start the game. Now the profram will
+	use the black stones and you get the white ones. Of course, switching
+	stones can also be done after each move of the computer. If you want
+	loa to play against itself you can use this feature by switching
+	stones after each move.
+
+	Of course, you can take back one or more moves you and loa have
+	done so far. Either go to the 'Undo last move' entry in the 'Game'
+	menu or simply press the backspace or the delete key.
+
+	If you run out of time but want to continue the current game you can
+	save it and reload it later by using the 'Save game' and 'Load game'
+	entries in the 'Game' menu. You will be asked for a file name for
+	saving or loading. While as a default an extension of '.loa' for file
+	names is assumed you can choose any extension you like better
+	(or none at all).
+
+	By the way, you also can start xloa with the name of a file with a saved
+	game as a command line argument. In this case xloa will automatically
+	load the game and you can continue from the point where you saved
+	the game.
+
+
+	Changing loas behavior
+
+	The 'Level' menu allows you to adjust how hard loa is going to try to
+	beat you. With the 'Extremely Easy' setting even a beginner should have
+	a real chance to win. The default level is 'Easy'. But take care: the
+	harder loa is trying to fight you the longer you will have to wait for
+	loa to make its next move! So, for the 'Insane' setting you will
+	either need a lot of patience or a real fast computer (or both ;-).
+
+	The second entry in the 'Level' menu has the following meaning: When
+	loa has found several moves that it thinks are equally good it may either
+	take always the first one it found (that's what happens if 'Randomize'
+	is switched off) or pick one of them at random (if 'Randomize' switched
+	on). So, if you want loa always to choose the same move in the same
+	situation you will have to switch 'Randomize' off (the default is on).
+
+
+	Options
+
+	If you would like to have a list of all moves done so far go to the
+	'Options' menu and select the "Show move list' entry. This will open
+	a new window with a list of moves and a progress indicator. The progress
+	indicator hasn't much more meaning than showing you that loa is really
+	active while you wait for its move and give you a very rough estimate
+	of how long you still have to wait. Don't expect it to be accurate !
+
+	The next entry in the 'Options' menu, 'Edit board', lets you enter
+	(or leave) the edit mode of the game. While, of course, you can use it
+	to cheat (but you won't do this, will you?) it's there to allow you
+	to create new layouts for the game to make it more interesting. When
+	you enter edit mode a new area below the board opens up with at least
+	a button labeled 'Delete' on the right side. If you click at it the cursor
+	becomes a scull and if you now click onto stones they will vanish.
+	To get out of delete mode click onto the button again.
+
+	Beside this button there often are one or two more stones on the left
+	side of the edit area, always a white and a black one. By dragging them
+	onto the board you can create stones at new positions. But there is one
+	restriction: If you already have 12 stones of one color located on the
+	board the extra stone of this color in the edit area will disappear.
+	Therefore, you can't place more than 12 stone of one color on the board.
+
+	Finally, in edit mode you can pick up stones on the board and move
+	them to different places without loa taking this for a real move.
+
+	If you either drag a stones from the edit area or from the board to a
+	field where there is already a stone, this stone will be deleted.
+
+	If the next entry in the 'Options' menu, 'Highlight last move', is
+	activated the starting field as well as the target field of the last
+	move are highlighted. This will help you to keep track of loas moves.
+
+	If you also want the stone that just has been moved to be flashed a few
+	times when it is dropped you should activate the 'Flash moves' entry.
+
+	Xloa can alert you by ringing the terminal bell when your opponent
+	(i.e. loa) has finished its move. This is done by selecting the entry
+	'Ring bell after moves' in the 'Options' menu.
+
+	And finally, if you want xloa also to ring the bell on invalid moves
+	activate the 'Ring bell on errors' entry in the 'Options menu.
+
+

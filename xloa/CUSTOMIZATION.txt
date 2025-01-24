@@ -1,0 +1,230 @@
+CUSTOMIZING XLOA
+
+Many of the properties of xloa can be adjusted via entries in one of the
+following files
+
+        /usr/lib/X11/Xresources
+        /usr/lib/X11/app-defaults/Xloa
+        ~/.Xresources
+		~/.xloarc
+
+The first two are for setting of system wide defaults, while the later two
+reside in the users home directory and allow the user to customize xloa to her
+wishes. When xloa is started all four files are parsed in the same sequence as
+they are listed above, thus letting the user override the system wide
+settings.
+
+In both the Xresources files values are set by lines of the form
+
+     xloa.KEYWORD: value    or     Xloa.KEYWORD: value
+
+while in `/usr/lib/X11/app-defaults/Xloa' and `~/.xloarc' the leading `xloa.'
+or 'Xloa.' can be left out. Spelling of the keywords as well as the values is
+case-insensitive.
+
+
+Here's the complete list of KEYWORDs together with the default settings and
+the possible values that can be assigned:
+
+Size            size of board without borders - integer (default: 400)
+
+Border          width of borders around the board - integer (default: 20)
+
+Level           playing strength - integer: 1,2,..,5 or
+								   string: very easy, easy, medium,
+										   hard, very hard (default: 2, easy)
+
+Randomize       tells xloa to pick a move at random if two or more moves
+				seem to be equally good - integer: 0,1 or
+										  string: off, on (default: 1, on)
+
+Highlight       controls if the fields the stone in the last move was moved
+				between are highlighted - integer: 0,1 or
+										  string: off, on (default: 1, on)
+                (see also HighlightColor below)
+
+Flash           controls if stones are flashed after a move -
+				                          integer: 0,1 or
+										  string: off, on (default: 0, off)
+
+Flashes         number of times a stone is flashed after a move,
+				set it to zero is equivalent to switched off flashing -
+				                                       integer (default: 3)
+flashtime       controls the speed of the flashing, i.e. it's the time
+                interval in seconds between redraws of the stone -
+				                                       float (default: 0.1)
+
+AlertBell       controls if the terminal bell is rung after each of the
+				computers moves -         integer: 0,1 or
+										  string: off, on (default: 0, off)
+
+RingBell        controls if the terminal bell is rung on invalid moves -
+				                          integer: 0,1 or
+										  string: off, on (default: 0, off)
+
+Extension       sets the default extension of game files -
+				                                      string ( default: loa )
+
+
+Background      background color[1] (default: black)
+
+StoneColor1     color[1] of black stones (default: black)
+
+StoneColor2     color[1] of white stones (default: white)
+
+BoardColor1     first color[1] of board (default: pale green)
+
+BoardColor2     second color[1] of board (default: papaya whip)
+
+FontColor       color[1] of letters around the board (default: WhiteSmoke)
+
+MovesArrowColor color[1] of arrows showing possible moves (default: blue)
+
+HintArrowColor  color[1] of arrow showing hints (default: red)
+
+HighlightColor  color for field highlighting (default: gold)
+
+
+BoardFont       font[2] to be used on the board
+
+MenuFont        font[2] to be used for menus and other GUI elements
+
+Font            font[2] to be used as default if the board or menu font
+                either is not defined or does not exist, defaults are
+				'-*-helvetica-bold-r-*--*-120-*', '6x13' or 'fixed', depending
+				on the availability of the fonts
+
+
+
+[1] colors are either specified by a valid color name - they are defined in
+    `/usr/lib/X11/rgb.txt' - or a `#', followed by 3, 6, 9, or 12 hexadecimal
+	digits	(i.e. 0,1,..9,A,B,..,F, both upper and lower case being valid),
+	defining the combination of red, green and blue that makes up the color.
+
+[2] Now, correct font names are a bit more complicated than color names.
+    Actually, it's very easy - just type `xlsfonts' to get a list of all
+    fonts installed on your system and pick one :-)
+
+	You did it? So, here is some more information. The way to specify a
+    font name is called the X Logical Font Description (XLFD) convention:
+
+	A font is described by 12 fields (if you count them you will see it's
+	actually 13 fields, but the combination of the last two is often seen
+	as just one field), all separated by dashes (`-'), with a starting dash
+	thrown in for good measure (but none at the end!). A typical font name
+	is thus
+
+	      -adobe-courier-bold-o-normal--10-100-75-75-m-60-iso8859-1
+
+    (don't panic yet). The first field, here: `adobe', is the foundry, i.e.
+	the organization or company that digitized and supplied the font. The
+	second field, `courier', is the font name - typical font names are
+	`times', `courier', `helvetica', `new century school book' and lots of
+	others. The third one is the weight, typically something like `medium',
+	`bold', `light' or `regular'. The next one is the slant - here's much less
+	to choose from: `i' for italics, `o' for oblique and `r' for roman. The
+	fifth field is the set width, describing the fonts proportionate width,
+	but for most fonts (except the `misc' fonts) only `normal' is valid.
+
+	Now things get a bit more tricky: the next obvious field, i.e. between the
+	double-dash (no, that's not a typo), is always empty. I guess that it's a
+	leftover from older X versions and stays in there for compatibility
+	reasons. The following four fields, `10-100-75-75', are the size of the
+	font in pixels and in tenth of a point plus the horizontal and vertical
+	resolution in dpi (dots per inch). No, a point is not a mathematical
+	entity of zero dimension, at least not here, but is a printers unit,
+	which is (nowadays) exactly 1/72 of an inch (and thus equals about
+	0.35278 mm, if you didn't already figure that out by yourself). Now,
+	you're monitor has a certain resolution given in dots (i.e. pixels) per
+	inch. Typical values are 75 or 100 dpi - but there may be some exotic
+	monitors with different resolutions in horizontal and vertical direction
+	thus both are specified in the XLFD. The size of a font in pixels - if
+	given in points - depends on the resolution of your screen. Just take the
+	size in points, divide it by 72 and multiply by the screen resolution.
+	I.e. a 14-point font (specified as 140 in the seventh field, remember it's
+	tenth of point) has a pixel size of about 20 for a 100-dpi resolution
+	(actually, it should be 19.44 pixels but since there are no fractions of a
+	pixel...), but for a 75-dpi display it's pixel size will be only 15.
+
+	The next, tenth field describes the spacing of the font, usually it's
+	either `m' for monospaced, i.e. fixed', or `p' for proportional,
+	i.e. variable. The second last field is the average width of a character
+	in the font, this time in tenth of a pixel (not in points - but that's
+	logical, damn it). Finally, the last field, `iso8859-1' (don't get
+	confused by the dash in there, there is always one) stands for the
+	encoding of the characters in the font according to the International
+	Standards Organization (ISO) definition. `iso8859-1' will do for English
+	and many character sets used in other West-European languages. Of course,
+	there are also fonts with other characters, but you will have to look for
+	a different source of information about this, sorry.
+
+	After all these gory details, here's the god news: Usually, you only have
+	to specify just a few of the fields. Most of them can be replaced by
+	wildcard characters, a `?' for a single character and a `*' for any group
+	of characters. E.g. on my system the font name
+
+	               *courier*--10*
+
+    is a valid font name (as I found out with the help of `xlsfonts', using
+	the `-fn' option. Don't forget to enclose the font name in single or
+	double quotes or the shell will do something to the embedded '*'s you
+	probably won't like...). But there are several fonts matching this name:
+
+		-adobe-courier-bold-o-normal--10-100-75-75-m-60-iso8859-1
+		-adobe-courier-bold-r-normal--10-100-75-75-m-60-iso8859-1
+		-adobe-courier-medium-o-normal--10-100-75-75-m-60-iso8859-1
+		-adobe-courier-medium-r-normal--10-100-75-75-m-60-iso8859-1
+
+	So, when you specify an ambiguous name, you're at the mercy of your font
+	server that will pick the first font it finds fitting the name you gave
+	it. (The font server, when started, gets a list of directories where to
+	look for fonts. When trying to locate a font it runs through the entries
+	in this list and picks the first font that fits the description. On my
+	Linux systems running the XFree server this list is in `/etc/XF86Config'
+	while on a DEC Alpha machine it seems to be in `/var/X11/fs/config'.)
+
+	Beside using wildcards, there are also several aliased font names, e.g.
+
+		5x7
+		5x8
+		6x10
+		6x13bold
+		10x20
+		12x24
+		fixed
+        lucidasanstypewriter-14
+
+	and many more. Again, `xlsfonts' may help you to find out about them -
+	they are at the end of the list and usually start with a character
+	instead of a dash - or, after you figured out where the fonts are stored
+	(`/usr/lib/X11/fonts' is a good place to start with), have a look at files
+	named `fonts.alias'.
+
+	To keep you busy, here's some more. Beside the fixed size fonts there
+	probably are also scalable fonts, fonts that can be magnified to any size
+	you want. If you look at the list of fonts returned by `xlsfonts' these
+	are the fonts with a zero for pixel size, point size and average width size
+	(sixth, seventh and eleventh field). If such a font exists you get the
+	font in the desired size by simply specifying the size you want. E.g. if
+	there's a scalable font named
+
+		-bitstream-courier-medium-r-normal--0-0-100-100-m-0-iso8859-1
+
+	you will get the version scaled to 39 pixel size by specifying
+
+		-bitstream-courier-medium-r-normal--39-*-100-100-m-*-iso8859-1
+
+	But there is a caveat when using scalable fonts: Some font servers only
+	accept `well-formed' XLFD names for these types of fonts, i.e. font names
+	containing all the 14 dashes and `*' wildcards for single fields only!
+
+	Phew, this became a real long foot note. Again, use `xlsfonts' to find out
+	about the fonts installed on your system. Another program, `xfontsel', can
+	very useful to select a font (and to get used to the XLFD conventions). To
+	find out about the set of characters (and their design) in a font you know
+	to exist on your system the program `xfd' is rather useful.
+
+	Finally, a much more extensive explanation of all the things you've just
+	read about plus pointers to even more detailed literature can for example 
+	be found in a book by Adrian Nye, called "Xlib Programming Manual Vol. I",
+	and published by O'Reilly & Associates, Inc.
