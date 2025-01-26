@@ -5,6 +5,6 @@ loa uses seven evaluation functions. The weight given to each can be changed by 
 
 See the file INSTALL for compilation and installation instructions.
 
-loa and tkloa were written by Christian Weninger in C. The xloa interface was written by Jens Thoms Törring. This software is distributed with GNU General Public License, version 2.
+loa and tkloa were written by Christian Weninger in C. The xloa interface was written by Jens Thoms Törring.
 
 This software package no longer has a maintainer. Fork it to maintain it or develop it further.
